@@ -7,11 +7,12 @@
   <style>
     :root{
       --bg: #000000;
-      --card: rgba(255,255,255,0.06);
       --card-border: rgba(255,255,255,0.10);
       --muted: rgba(255,255,255,0.45);
-      --glass-blur: 12px;
+      --glass: rgba(255,255,255,0.03);
+      --accent-success: #7ef29d;
     }
+
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{
@@ -21,24 +22,29 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:28px;
+      padding:20px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
+    /* Card */
     .card{
       width:100%;
       max-width:460px;
       border-radius:14px;
-      padding:34px 28px;
+      padding:28px;
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
       border: 1px solid var(--card-border);
-      box-shadow:0 18px 50px rgba(0,0,0,0.75),
-                 0 6px 20px rgba(255,255,255,0.02) inset;
-      backdrop-filter: blur(var(--glass-blur));
+      box-shadow:
+        0 18px 50px rgba(0,0,0,0.75),
+        0 6px 20px rgba(255,255,255,0.02) inset;
+      backdrop-filter: blur(8px);
       text-align:center;
-      transition: transform 260ms ease, box-shadow 260ms ease;
+      transition: transform 220ms ease, box-shadow 220ms ease;
+      will-change: transform, opacity;
     }
 
-    .card:hover{ transform: translateY(-6px); box-shadow: 0 28px 80px rgba(0,0,0,0.8); }
+    .card.hover-lift{ transform: translateY(-6px); box-shadow: 0 28px 80px rgba(0,0,0,0.8); }
 
     .morse{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
@@ -50,14 +56,16 @@
     }
 
     h1{
-      margin:0 0 28px 0;
+      margin:0 0 22px 0;
       font-size:20px;
       font-weight:700;
       color:#efefef;
+      line-height:1.1;
     }
 
     form{ display:flex; flex-direction:column; gap:12px; align-items:stretch; }
 
+    /* Fields are visually hidden until card active (hover, focus, or touch). */
     .field{
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.07);
@@ -66,31 +74,35 @@
       padding:12px 14px;
       font-size:15px;
       outline:none;
-      transition: opacity 260ms ease, transform 260ms ease, border-color 200ms ease, background 200ms ease;
+      transition: opacity 240ms ease, transform 240ms ease, border-color 180ms ease, background 180ms ease;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(6px);
       pointer-events: none;
     }
 
     .field::placeholder{ color: transparent; transition: color 220ms ease; }
 
-    .card:hover .field,
+    /* visible state */
+    .card.active .field,
     .card:focus-within .field{
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
     }
-    .card:hover .field::placeholder,
+
+    .card.active .field::placeholder,
     .card:focus-within .field::placeholder{
       color: var(--muted);
     }
 
-    .field:nth-of-type(1){ transition-delay: 0.08s; }
-    .field:nth-of-type(2){ transition-delay: 0.12s; }
-    .field:nth-of-type(3){ transition-delay: 0.16s; }
+    /* nice stagger */
+    .field:nth-of-type(1){ transition-delay: 0.06s; }
+    .field:nth-of-type(2){ transition-delay: 0.10s; }
+    .btn{ transition-delay: 0.14s; }
 
     textarea.field{ min-height:120px; resize:none; }
 
+    /* Button */
     .btn{
       padding:10px 14px;
       border-radius:9px;
@@ -100,86 +112,198 @@
       font-weight:600;
       font-size:14px;
       cursor:pointer;
-      transition: background 180ms ease, box-shadow 180ms ease, transform 120ms ease;
+      transition: background 160ms ease, box-shadow 160ms ease, transform 120ms ease, opacity 160ms ease;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(6px);
       pointer-events: none;
     }
 
-    .card:hover .btn,
+    .card.active .btn,
     .card:focus-within .btn{
       opacity:1;
       transform: translateY(0);
       pointer-events: auto;
     }
 
-    .btn:hover{
+    .btn:hover:not(:disabled){
       background: rgba(255,255,255,0.14);
       box-shadow: 0 6px 20px rgba(255,255,255,0.06);
       transform: translateY(-2px);
+    }
+
+    .btn:disabled{
+      opacity:0.55;
+      cursor:default;
+      transform:none;
+      box-shadow:none;
     }
 
     .foot{
       margin-top:14px;
       font-size:12px;
       color:var(--muted);
-      opacity:0.9;
+      opacity:0.95;
     }
 
     /* Confirmation text */
     .success{
       opacity:0;
       margin-top:10px;
-      color:#7ef29d;
+      color:var(--accent-success);
       font-size:13px;
       letter-spacing:0.5px;
-      transition: opacity 600ms ease;
+      transition: opacity 360ms ease;
     }
 
     .success.visible{ opacity:1; }
 
+    .error{
+      opacity:0;
+      margin-top:10px;
+      color:#ff7b7b;
+      font-size:13px;
+      letter-spacing:0.2px;
+      transition: opacity 360ms ease;
+    }
+
+    .error.visible{ opacity:1; }
+
+    /* accessibility focus ring */
+    :focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.04); border-radius: 8px; }
+
+    /* subtle initial entrance (cheap) */
+    .card[aria-hidden="false"]{ opacity:1; transform:none; }
+
     @media (max-width:520px){
-      .card{ padding:26px 18px; max-width:100%; }
+      .card{ padding:22px; max-width:100%; border-radius:12px; }
       h1{ font-size:18px; }
+      .field{ padding:12px; }
+      textarea.field{ min-height:100px; }
+    }
+
+    /* Respect user motion preference */
+    @media (prefers-reduced-motion: reduce){
+      .card, .field, .btn, .success, .error { transition: none !important; animation: none !important; transform: none !important; }
     }
   </style>
 </head>
 <body>
-  <main class="card" aria-labelledby="title">
+  <main class="card" id="card" aria-labelledby="title" aria-hidden="false">
     <div class="morse" aria-hidden>··· --- ···</div>
     <h1 id="title">What's on your mind?</h1>
 
-    <form id="messageForm" action="https://formspree.io/f/xblzedpv" method="POST" autocomplete="off">
-      <input type="text" name="_gotcha" style="display:none" autocomplete="off">
-      <input class="field" name="name" type="text" placeholder="Name (Optional)" autocomplete="name" />
-      <textarea class="field" name="message" placeholder="Write your message.." required></textarea>
+    <form id="messageForm" action="https://formspree.io/f/xblzedpv" method="POST" autocomplete="off" novalidate>
+      <!-- honeypot -->
+      <input type="text" name="_gotcha" style="display:none" autocomplete="off" aria-hidden="true">
+
+      <input class="field" id="name" name="name" type="text" placeholder="Name (Optional)" autocomplete="name" />
+      <textarea class="field" id="message" name="message" placeholder="Write your message.." required></textarea>
+
       <input type="hidden" name="_subject" value="New Message from The Portal">
-      <button class="btn" type="submit">Transmit</button>
-      <div class="success" id="successMsg">Transmission Received..</div>
+
+      <button class="btn" id="sendBtn" type="submit" aria-live="polite">Transmit</button>
+
+      <div role="status" aria-live="polite">
+        <div class="success" id="successMsg">Transmission Received..</div>
+        <div class="error" id="errorMsg">Could not send — try again.</div>
+      </div>
     </form>
 
     <div class="foot"> • to mirmusaib • </div>
   </main>
 
   <script>
-    const form = document.getElementById('messageForm');
-    const success = document.getElementById('successMsg');
+    (function(){
+      const card = document.getElementById('card');
+      const form = document.getElementById('messageForm');
+      const sendBtn = document.getElementById('sendBtn');
+      const success = document.getElementById('successMsg');
+      const error = document.getElementById('errorMsg');
+      const fields = Array.from(card.querySelectorAll('.field'));
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = new FormData(form);
-      const response = await fetch(form.action, {
-        method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
+      // Utility: show card active (for hover, focus, and touch)
+      function setActive(on){
+        if(on) card.classList.add('active');
+        else card.classList.remove('active');
+      }
+
+      // Keep fields visible while user interacts (works on mobile + desktop)
+      fields.forEach(f => {
+        f.addEventListener('focus', ()=> setActive(true));
+        f.addEventListener('blur', ()=>{
+          // if none of the fields has focus, remove active after small delay
+          setTimeout(()=>{
+            const anyFocused = fields.some(x => document.activeElement === x);
+            if(!anyFocused) setActive(false);
+          }, 80);
+        });
       });
 
-      if (response.ok) {
-        form.reset();
-        success.classList.add('visible');
-        setTimeout(() => success.classList.remove('visible'), 4000);
+      // For touch devices: when user taps inside card, activate it (so hover effects are available)
+      card.addEventListener('pointerdown', (e) => {
+        // only activate on primary pointer (finger / left mouse)
+        if(e.isPrimary) setActive(true);
+      });
+
+      // Also respond to mouse enter/leave for desktop hover-lift
+      card.addEventListener('mouseenter', ()=> card.classList.add('hover-lift'));
+      card.addEventListener('mouseleave', ()=> card.classList.remove('hover-lift'));
+
+      // Form submission: fetch + graceful UI
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        success.classList.remove('visible');
+        error.classList.remove('visible');
+
+        // simple validation
+        const messageField = form.querySelector('[name="message"]');
+        if(!messageField.value.trim()){
+          messageField.focus();
+          return;
+        }
+
+        // disable submit
+        sendBtn.disabled = true;
+        const origText = sendBtn.textContent;
+        sendBtn.textContent = 'Sending…';
+
+        try{
+          const data = new FormData(form);
+          const resp = await fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: { 'Accept': 'application/json' }
+          });
+
+          if(resp.ok){
+            form.reset();
+            setActive(false);
+            success.classList.add('visible');
+            // hide after 4s
+            setTimeout(()=> success.classList.remove('visible'), 4000);
+          } else {
+            throw new Error('Network response not ok');
+          }
+        } catch (err){
+          console.error(err);
+          error.classList.add('visible');
+          setTimeout(()=> error.classList.remove('visible'), 4500);
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = origText;
+        }
+      });
+
+      // Accessibility: allow Enter to submit from textarea if Ctrl/Cmd+Enter
+      const textarea = document.getElementById('message');
+      if(textarea){
+        textarea.addEventListener('keydown', (e)=>{
+          if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+            sendBtn.click();
+          }
+        });
       }
-    });
+    })();
   </script>
 </body>
 </html>
